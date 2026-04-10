@@ -20,11 +20,32 @@ func NewMovieHandler(s *service.MovieService) *MovieHandler {
 }
 
 func (h *MovieHandler) CreateMovie(c *gin.Context) {
-	var createMovieRequest dto.CreateMovie
+	name := c.PostForm("name")
+	duration := c.PostForm("duration")
+	release := c.PostForm("release")
 
-	if err := c.ShouldBindJSON(&createMovieRequest); err != nil {
-		response.HandleError(c, appErr.InvalidInput("invalid request body", nil))
+	file, header, err := c.Request.FormFile("poster")
+	if err != nil {
+		response.HandleError(c, appErr.InvalidInput("poster is required", nil))
 		return
+	}
+	defer file.Close()
+
+	posterURL, err := service.UploadFile(
+		header.Filename,
+		file,
+		header.Header.Get("Content-Type"),
+	)
+	if err != nil {
+		response.HandleError(c, err)
+		return
+	}
+
+	createMovieRequest := dto.CreateMovie{
+		Name:     name,
+		Duration: duration,
+		Release:  release,
+		Poster:   posterURL, 
 	}
 
 	movie, err := h.service.CreateMovie(createMovieRequest)
@@ -32,6 +53,7 @@ func (h *MovieHandler) CreateMovie(c *gin.Context) {
 		response.HandleError(c, err)
 		return
 	}
+
 	response.OK(c, mapper.ToMovieResponse(movie))
 
 }
@@ -68,16 +90,48 @@ func (h *MovieHandler) UpdateMovie(c *gin.Context) {
 		response.HandleError(c, appErr.InvalidInput("invalid movie ID", nil))
 		return
 	}
-	var updateMovieRequest dto.UpdateMovie
-	if err := c.ShouldBindJSON(&updateMovieRequest); err != nil {
-		response.HandleError(c, appErr.InvalidInput("invalid request body", nil))
+
+	oldMovie, err := h.service.GetMovieByID(id)
+	if err != nil {
+		response.HandleError(c, err)
 		return
 	}
+
+	name := c.PostForm("name")
+	duration := c.PostForm("duration")
+	release := c.PostForm("release")
+	posterURL := oldMovie.Poster
+
+	file, header, err := c.Request.FormFile("poster")
+	if err == nil {
+		defer file.Close()
+
+		posterURL, err = service.UploadFile(
+			header.Filename,
+			file,
+			header.Header.Get("Content-Type"),
+		)
+		if err != nil {
+			response.HandleError(c, err)
+			return
+		}
+
+		go service.DeleteFile(oldMovie.Poster)
+	}
+
+	updateMovieRequest := dto.UpdateMovie{
+		Name:     name,
+		Duration: duration,
+		Release:  release,
+		Poster:   posterURL,
+	}
+
 	movie, err := h.service.UpdateMovie(id, updateMovieRequest)
 	if err != nil {
 		response.HandleError(c, err)
 		return
 	}
+
 	response.OK(c, mapper.ToMovieResponse(movie))
 }
 
