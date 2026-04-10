@@ -3,7 +3,11 @@ package main
 import (
 	"log"
 	"os"
+	"server/internal/core/handler"
+	"server/internal/core/service"
 	"server/internal/database"
+	"server/internal/infra"
+	"server/internal/route"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,7 +20,7 @@ func main() {
 		log.Println("CONFIG NOT FOUND")
 	}
 	database.Connect()
-	//jwtSecret := os.Getenv("JWT_SECRET")
+	jwtSecret := os.Getenv("JWT_SECRET")
 	PORT := os.Getenv("PORT")
 
 	if PORT == "" {
@@ -24,6 +28,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -31,7 +36,12 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	//api := r.Group("/api")
+	movieRepo := infra.NewMovieRepoGorm(database.DB)
+	movieService := service.NewMovieService(movieRepo,jwtSecret)
+	movieHandler := handler.NewMovieHandler(movieService)
+
+	api := r.Group("/api")
+	route.RegisterMovieRoutes(api.Group("/movies"), movieHandler, jwtSecret)	
 	r.Run(":" + PORT + "✅")
 
 }
