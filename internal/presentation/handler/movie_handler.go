@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"server/internal/core/service"
-	"server/internal/dto"
-	appErr "server/internal/errors"
-	"server/internal/mapper"
-	"server/internal/response"
+	"server/internal/presentation/dto"
+	"server/internal/presentation/mapper"
+	"server/internal/service"
+	appErr "server/internal/shared/errors"
+	"server/internal/shared/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -45,7 +45,7 @@ func (h *MovieHandler) CreateMovie(c *gin.Context) {
 		Name:     name,
 		Duration: duration,
 		Release:  release,
-		Poster:   posterURL, 
+		Poster:   posterURL,
 	}
 
 	movie, err := h.service.CreateMovie(createMovieRequest)
@@ -59,11 +59,11 @@ func (h *MovieHandler) CreateMovie(c *gin.Context) {
 }
 
 func (h *MovieHandler) GetMovieByID(c *gin.Context) {
-	idParam := c.Param("id") 
+	idParam := c.Param("id")
 
 	id, err := uuid.Parse(idParam)
 	if err != nil {
-		response.HandleError(c,appErr.InvalidInput("invalid movie ID", nil))
+		response.HandleError(c, appErr.InvalidInput("invalid movie ID", nil))
 		return
 	}
 	movie, err := h.service.GetMovieByID(id)

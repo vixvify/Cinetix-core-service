@@ -3,7 +3,7 @@ package database
 import (
 	"log"
 	"os"
-	"server/internal/models"
+	"server/internal/domain/entities"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,7 +29,7 @@ func Connect() {
 	}
 
 	err = db.AutoMigrate(
-		&models.User{},
+		&entities.User{},
 	)
 	if err != nil {
 		log.Fatal("❌ auto migrate failed:", err)

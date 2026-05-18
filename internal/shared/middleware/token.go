@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	appErr "server/internal/errors"
-	"server/internal/response"
-	util "server/internal/utils"
+	appErr "server/internal/shared/errors"
+	"server/internal/shared/response"
+	"server/internal/shared/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func JWTAuth(secret string) gin.HandlerFunc {
 			return
 		}
 
-		claims, err := util.VerifyAccessToken(cookie.Value, secret)
+		claims, err := utils.VerifyAccessToken(cookie.Value, secret)
 		if err != nil {
 			response.HandleError(c, appErr.Unauthorized("invalid token", nil))
 			c.Abort()

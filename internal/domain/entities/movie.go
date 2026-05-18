@@ -1,4 +1,4 @@
-package models
+package entities
 
 import (
 	"time"
@@ -14,4 +14,3 @@ type Movie struct {
 	Poster    string    `json:"poster"`
 	CreatedAt time.Time `json:"created_at"`
 }
-

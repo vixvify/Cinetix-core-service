@@ -3,7 +3,7 @@ package response
 import (
 	"net/http"
 	"os"
-	"server/internal/errors"
+	"server/internal/shared/errors"
 
 	"github.com/gin-gonic/gin"
 )

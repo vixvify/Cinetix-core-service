@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 	"os"
-	"server/internal/core/handler"
-	"server/internal/core/service"
-	"server/internal/database"
-	"server/internal/infra"
-	"server/internal/route"
+	"server/internal/infrastructure/database"
+	"server/internal/infrastructure/repository"
+	"server/internal/presentation/handler"
+	"server/internal/presentation/routes"
+	"server/internal/service"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	r := gin.Default()
-	
+
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -36,12 +36,11 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	movieRepo := infra.NewMovieRepoGorm(database.DB)
-	movieService := service.NewMovieService(movieRepo,jwtSecret)
+	movieRepo := repository.NewMovieRepoGorm(database.DB)
+	movieService := service.NewMovieService(movieRepo, jwtSecret)
 	movieHandler := handler.NewMovieHandler(movieService)
 
 	api := r.Group("/api")
-	route.RegisterMovieRoutes(api.Group("/movies"), movieHandler, jwtSecret)	
-	r.Run(":" + PORT + "✅")
-
+	routes.RegisterMovieRoutes(api.Group("/movies"), movieHandler, jwtSecret)
+	r.Run(":" + PORT)
 }
